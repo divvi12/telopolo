@@ -1,0 +1,9 @@
+# Screenshots
+*.png
+
+# OS files
+.DS_Store
+
+# Editor
+.vscode/
+*.swp

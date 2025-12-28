@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TELO·POLO - Free Online Party Game for Couples & Groups</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="TELO·POLO is a free online party game for 2-6 teams. Describe, act, and guess words in 30 seconds across 3 exciting rounds. Perfect for couples, family game nights, and parties! No download required - play instantly in your browser.">
+  <meta name="keywords" content="free party game, free couples game, free game, online board game, free online game, browser game, no download game, word game, guessing game, family game, 30 seconds, charades, team game, TELO·POLO, quick thinking game, multiplayer game, group game, date night game, icebreaker game, drinking game alternative, game night, virtual party game, mobile game free, taboo game, heads up game, pictionary online, family friendly game, couples game night, free word game">
+  <meta name="author" content="TELO·POLO">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TELO·POLO - Free Online Party Game for Couples & Groups">
+  <meta property="og:description" content="Free online party game for couples and groups! Describe, act, and guess words in 30 seconds. No download - play instantly in your browser!">
+  <meta property="og:site_name" content="TELO·POLO">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TELO·POLO - Free Online Party Game for Couples & Groups">
+  <meta name="twitter:description" content="Free online party game for couples and groups! Describe, act, and guess words in 30 seconds. No download - play instantly in your browser!">
+
+  <!-- Additional SEO -->
+  <link rel="canonical" href="https://telopo.com/">
+  <meta name="theme-color" content="#065f46">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    body { overscroll-behavior: none; }
+    html, body, #root { height: 100%; }
+    @keyframes scrollImages {
+      0%, 30% { transform: translateX(0); }
+      33%, 63% { transform: translateX(-128px); }
+      66%, 96% { transform: translateX(-256px); }
+      100% { transform: translateX(-384px); }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="words.js"></script>
+  <script src="translations.js"></script>
+  <script>
+    // Load expanded word packs from JSON files
+    async function loadExpandedWords() {
+      const files = [
+        { file: 'worldwide-words-expanded.json', key: 'worldwide' },
+        { file: 'usa-words-expanded.json', key: 'usa' },
+        { file: 'south-africa-words-expanded.json', key: 'southAfrica' },
+        { file: 'uk-words-expanded.json', key: 'uk' },
+        { file: 'australia-words-expanded.json', key: 'australia' },
+        { file: 'ireland-words-expanded.json', key: 'ireland' },
+        { file: 'canada-words-expanded.json', key: 'canada' }
+      ];
+      await Promise.all(files.map(async ({ file, key }) => {
+        try {
+          const response = await fetch(file);
+          if (response.ok) {
+            const data = await response.json();
+            if (data[key]) {
+              wordPacks[key] = data[key];
+            }
+          }
+        } catch (e) {
+          console.log(`Using default ${key} words`);
+        }
+      }));
+    }
+  </script>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Language helper
+    const LANG_KEY = 'telopo_language';
+    const getSavedLang = () => { try { return localStorage.getItem(LANG_KEY) || 'en'; } catch { return 'en'; } };
+    const saveLang = (lang) => { try { localStorage.setItem(LANG_KEY, lang); } catch {} };
+
+    const ageEmojis = {
+      kids: "🧒", tweens: "🎮", teens: "📱", adults: "💼", over40: "🍷", allAges: "👨‍👩‍👧‍👦"
+    };
+
+    const roundIcons = { 1: "🗣️", 2: "☝️", 3: "🎭" };
+    const roundColors = {
+      1: "from-blue-500 to-blue-700",
+      2: "from-amber-500 to-orange-600",
+      3: "from-purple-500 to-pink-600"
+    };
+
+    const teamColors = [
+      { bg: "bg-blue-600/30", ring: "ring-blue-400", text: "text-blue-300", gradient: "from-blue-600 to-blue-800" },
+      { bg: "bg-red-600/30", ring: "ring-red-400", text: "text-red-300", gradient: "from-red-600 to-red-800" },
+      { bg: "bg-green-600/30", ring: "ring-green-400", text: "text-green-300", gradient: "from-green-600 to-green-800" },
+      { bg: "bg-yellow-600/30", ring: "ring-yellow-400", text: "text-yellow-300", gradient: "from-yellow-500 to-amber-700" },
+      { bg: "bg-pink-600/30", ring: "ring-pink-400", text: "text-pink-300", gradient: "from-pink-500 to-pink-700" },
+      { bg: "bg-cyan-600/30", ring: "ring-cyan-400", text: "text-cyan-300", gradient: "from-cyan-500 to-cyan-700" },
+    ];
+    const teamEmojis = ["🔵", "🔴", "🟢", "🟡", "🩷", "🩵"];
+    const cardBaseOptions = [21, 31, 41, 51];
+    function shuffleArray(arr) { const s = [...arr]; for (let i = s.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [s[i], s[j]] = [s[j], s[i]]; } return s; }
+    function getOddCardCount(base, numTeams) { return (base * 3) % numTeams === 0 ? base + 1 : base; }
+
+    // Helper functions for word history (persisted across 5 games per country/age combo)
+    const HISTORY_KEY = 'telopo_word_history';
+    const MAX_GAMES = 5;
+
+    function getWordHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(HISTORY_KEY)) || {};
+      } catch { return {}; }
+    }
+
+    function getUsedWords(country, age) {
+      const history = getWordHistory();
+      const key = `${country}_${age}`;
+      const games = history[key] || [];
+      return games.flat();
+    }
+
+    function saveGameWords(country, age, words) {
+      const history = getWordHistory();
+      const key = `${country}_${age}`;
+      const games = history[key] || [];
+      games.push(words);
+      if (games.length > MAX_GAMES) games.shift();
+      history[key] = games;
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      } catch {}
+    }
+
+    function App() {
+      const [lang, setLang] = useState(getSavedLang());
+      const t = translations[lang] || translations.en;
+      const changeLang = (newLang) => { setLang(newLang); saveLang(newLang); };
+
+      const [gameState, setGameState] = useState('setup');
+      const [selectedCountry, setSelectedCountry] = useState('worldwide');
+      const [ageGroup, setAgeGroup] = useState('allAges');
+      const [round, setRound] = useState(1);
+      const [roundStartTeam, setRoundStartTeam] = useState(0);
+      const [timer, setTimer] = useState(30);
+      const [isRunning, setIsRunning] = useState(false);
+      const [numTeams, setNumTeams] = useState(2);
+      const [currentTeam, setCurrentTeam] = useState(0);
+      const [numCards, setNumCards] = useState(21);
+      const [gameWords, setGameWords] = useState([]);
+      const [remainingWords, setRemainingWords] = useState([]);
+      const [currentWord, setCurrentWord] = useState(null);
+      const [scores, setScores] = useState([]);
+      const [turnCorrect, setTurnCorrect] = useState([]);
+      const [showTurnSummary, setShowTurnSummary] = useState(false);
+      const [showRules, setShowRules] = useState(false);
+      const [showLangMenu, setShowLangMenu] = useState(false);
+
+      const langOptions = Object.keys(translations);
+
+      useEffect(() => {
+        let interval;
+        if (isRunning && timer > 0) interval = setInterval(() => setTimer(prev => prev - 1), 1000);
+        else if (timer === 0 && isRunning) endTurn();
+        return () => clearInterval(interval);
+      }, [isRunning, timer]);
+
+      useEffect(() => {
+        const adjusted = cardBaseOptions.map(b => getOddCardCount(b, numTeams));
+        if (!adjusted.includes(numCards)) setNumCards(adjusted[0]);
+      }, [numTeams]);
+
+      const getCardOptions = () => cardBaseOptions.map(b => getOddCardCount(b, numTeams));
+      const startGame = () => {
+        const allWords = wordPacks[selectedCountry].ages[ageGroup];
+        const usedWords = getUsedWords(selectedCountry, ageGroup);
+        const availableWords = allWords.filter(w => !usedWords.includes(w));
+        const wordsToUse = availableWords.length >= numCards ? availableWords : allWords;
+        const selected = shuffleArray(wordsToUse).slice(0, numCards);
+        const randomStartTeam = Math.floor(Math.random() * numTeams);
+        setGameWords(selected);
+        setRemainingWords(shuffleArray([...selected]));
+        setScores(Array(numTeams).fill(0));
+        setRound(1);
+        setRoundStartTeam(randomStartTeam);
+        setCurrentTeam(randomStartTeam);
+        setGameState('playing');
+      };
+      const startTurn = () => { setTurnCorrect([]); setTimer(30); setIsRunning(true); setShowTurnSummary(false); drawNextWord(); };
+      const drawNextWord = () => { if (remainingWords.length > 0) { const [next, ...rest] = remainingWords; setCurrentWord(next); setRemainingWords(rest); } else endRound(); };
+      const markCorrect = () => { const newTurnCorrect = [...turnCorrect, currentWord]; setTurnCorrect(newTurnCorrect); if (remainingWords.length > 0) drawNextWord(); else endRoundWithCorrect(newTurnCorrect); };
+      const stopTurn = () => { if (currentWord) setRemainingWords(prev => [...prev, currentWord]); endTurn(); };
+      const endTurn = () => { setIsRunning(false); setCurrentWord(null); setScores(prev => { const n = [...prev]; n[currentTeam] += turnCorrect.length; return n; }); setShowTurnSummary(true); };
+      const endRoundWithCorrect = (correctList) => { setIsRunning(false); setCurrentWord(null); setScores(prev => { const n = [...prev]; n[currentTeam] += correctList.length; return n; }); setTurnCorrect(correctList); if (round < 3) setGameState('between-rounds'); else setGameState('finished'); };
+      const endRound = () => endRoundWithCorrect(turnCorrect);
+      const nextTeam = () => { setShowTurnSummary(false); setTurnCorrect([]); setCurrentTeam((currentTeam + 1) % numTeams); };
+      const nextRound = () => {
+        const minScore = Math.min(...scores);
+        const lowestTeams = scores.reduce((acc, s, i) => { if (s === minScore) acc.push(i); return acc; }, []);
+        const newStartTeam = lowestTeams[Math.floor(Math.random() * lowestTeams.length)];
+        setRound(prev => prev + 1); setRemainingWords(shuffleArray([...gameWords])); setRoundStartTeam(newStartTeam); setCurrentTeam(newStartTeam); setTurnCorrect([]); setShowTurnSummary(false); setCurrentWord(null); setIsRunning(false); setTimer(30); setGameState('playing');
+      };
+      const resetGame = () => { if (gameWords.length > 0) saveGameWords(selectedCountry, ageGroup, gameWords); setGameState('setup'); setRound(1); setRoundStartTeam(0); setTimer(30); setIsRunning(false); setCurrentTeam(0); setScores([]); setGameWords([]); setRemainingWords([]); setCurrentWord(null); setTurnCorrect([]); setShowTurnSummary(false); setAgeGroup('allAges'); };
+      const getWinner = () => { const max = Math.max(...scores); return scores.reduce((acc, s, i) => { if (s === max) acc.push(i); return acc; }, []); };
+      const getLeader = () => { const max = Math.max(...scores); const leaders = scores.reduce((acc, s, i) => { if (s === max) acc.push(i); return acc; }, []); return leaders.length === scores.length ? null : leaders; };
+
+      const RulesModal = () => (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={() => setShowRules(false)}>
+          <div className="bg-gray-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-black text-white">📜 {t.rulesTitle}</h2>
+              <button onClick={() => setShowRules(false)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div className="space-y-4">
+              <div className="bg-gray-700/50 rounded-xl p-4">
+                <h3 className="text-yellow-400 font-bold mb-2">⏱️ {t.timeLimit}</h3>
+                <p className="text-gray-300" dangerouslySetInnerHTML={{__html: t.timeLimitDesc}}></p>
+              </div>
+              <div className="bg-blue-900/40 rounded-xl p-4 border-l-4 border-blue-400">
+                <h3 className="text-blue-400 font-bold mb-2">🗣️ {t.round1Title}</h3>
+                <ul className="text-gray-300 space-y-1 text-sm">
+                  {t.round1Rules.map((rule, i) => <li key={i} className={i >= 2 ? 'text-red-400' : ''}>{i < 2 ? '✓' : '✗'} {rule}</li>)}
+                </ul>
+              </div>
+              <div className="bg-amber-900/40 rounded-xl p-4 border-l-4 border-amber-400">
+                <h3 className="text-amber-400 font-bold mb-2">☝️ {t.round2Title}</h3>
+                <ul className="text-gray-300 space-y-1 text-sm">
+                  {t.round2Rules.map((rule, i) => <li key={i} className={i >= 1 ? 'text-red-400' : ''} dangerouslySetInnerHTML={{__html: (i < 1 ? '✓ ' : '✗ ') + rule}}></li>)}
+                </ul>
+              </div>
+              <div className="bg-purple-900/40 rounded-xl p-4 border-l-4 border-purple-400">
+                <h3 className="text-purple-400 font-bold mb-2">🎭 {t.round3Title}</h3>
+                <ul className="text-gray-300 space-y-1 text-sm">
+                  {t.round3Rules.map((rule, i) => <li key={i} className={i >= 2 ? 'text-red-400' : ''}>{i < 2 ? '✓' : '✗'} {rule}</li>)}
+                </ul>
+              </div>
+              <div className="bg-red-900/40 rounded-xl p-4">
+                <h3 className="text-red-400 font-bold mb-2">⚠️ {t.ruleBreaks}</h3>
+                <p className="text-gray-300 text-sm" dangerouslySetInnerHTML={{__html: t.ruleBreaksDesc}}></p>
+              </div>
+              <div className="bg-gray-700/50 rounded-xl p-4">
+                <h3 className="text-green-400 font-bold mb-2">✓ {t.claimingPoints}</h3>
+                <ul className="text-gray-300 space-y-1 text-sm">
+                  {t.claimingPointsRules.map((rule, i) => <li key={i} dangerouslySetInnerHTML={{__html: '• ' + rule}}></li>)}
+                </ul>
+              </div>
+            </div>
+            <button onClick={() => setShowRules(false)} className="w-full mt-6 py-3 bg-gradient-to-r from-green-500 to-yellow-500 text-gray-900 font-bold rounded-xl">{t.gotItBtn}</button>
+          </div>
+        </div>
+      );
+
+      if (gameState === 'setup') {
+        const countryKeys = Object.keys(wordPacks);
+        const countryData = wordPacks[selectedCountry];
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 flex items-center justify-center p-4">
+            <div className="bg-gray-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl max-h-[95vh] overflow-y-auto">
+              <div className="text-center mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="relative">
+                    <button onClick={() => setShowLangMenu(!showLangMenu)} className="text-gray-400 hover:text-yellow-400 text-sm flex items-center gap-1">{translations[lang].flag} {translations[lang].name} ▾</button>
+                    {showLangMenu && (
+                      <div className="absolute top-8 left-0 bg-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                        {langOptions.map(l => (
+                          <button key={l} onClick={() => { changeLang(l); setShowLangMenu(false); }} className={`block w-full px-4 py-2 text-left text-sm hover:bg-gray-600 ${lang === l ? 'bg-yellow-400 text-gray-900' : 'text-gray-200'}`}>{translations[l].flag} {translations[l].name}</button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <a href="https://buymeacoffee.com/pieterdevix" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:bg-yellow-400 hover:text-gray-900 text-xs px-2 py-1 border border-yellow-400 rounded-lg transition-all">{t.support}</a>
+                  <button onClick={() => setShowRules(true)} className="text-gray-400 hover:text-yellow-400 text-sm flex items-center gap-1">📜 {t.rules}</button>
+                </div>
+                <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-yellow-400 to-green-400 mb-1">{t.title}</h1>
+                <p className="text-lg text-yellow-400">{t.subtitle}</p>
+              </div>
+              {showRules && <RulesModal />}
+              <div className="space-y-4 mb-6">
+                <div className="bg-gray-700/50 rounded-xl p-4">
+                  <label className="text-white font-bold block mb-3">{t.chooseCountry}</label>
+                  <div className="grid grid-cols-4 gap-2">{countryKeys.map(key => (<button key={key} onClick={() => setSelectedCountry(key)} className={`py-2 px-1 rounded-xl font-bold transition-all text-center ${selectedCountry === key ? 'bg-yellow-400 text-gray-900 scale-105' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'}`}><span className="text-xl block">{wordPacks[key].flag}</span><span className="text-[10px]">{wordPacks[key].name}</span></button>))}</div>
+                </div>
+                <div className="bg-gray-700/50 rounded-xl p-4">
+                  <label className="text-white font-bold block mb-3">{t.ageGroup}</label>
+                  <div className="grid grid-cols-3 gap-2">{Object.keys(ageEmojis).map(key => (<button key={key} onClick={() => setAgeGroup(key)} className={`py-2 px-1 rounded-xl font-bold transition-all text-center ${ageGroup === key ? 'bg-yellow-400 text-gray-900 scale-105' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'}`}><span className="text-lg block">{ageEmojis[key]}</span><span className="text-[10px] block">{t.ages[key].label}</span><span className="text-[8px] text-gray-400">{t.ages[key].range}</span></button>))}</div>
+                </div>
+                <div className="bg-gray-700/50 rounded-xl p-4">
+                  <label className="text-white font-bold block mb-3">{t.teams}</label>
+                  <div className="flex gap-2">{[2, 3, 4, 5, 6].map(n => (<button key={n} onClick={() => setNumTeams(n)} className={`flex-1 py-3 rounded-xl font-bold transition-all ${numTeams === n ? 'bg-yellow-400 text-gray-900' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'}`}>{n}</button>))}</div>
+                  <div className="flex justify-center gap-1 mt-3">{Array(numTeams).fill(0).map((_, i) => <span key={i} className="text-xl">{teamEmojis[i]}</span>)}</div>
+                </div>
+                <div className="bg-gray-700/50 rounded-xl p-4">
+                  <label className="text-white font-bold block mb-3">{t.cards}</label>
+                  <div className="flex gap-2">{getCardOptions().map(n => (<button key={n} onClick={() => setNumCards(n)} className={`flex-1 py-3 rounded-xl font-bold transition-all ${numCards === n ? 'bg-yellow-400 text-gray-900' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'}`}>{n}</button>))}</div>
+                </div>
+                <div className="bg-gray-700/50 rounded-xl p-3"><div className="flex justify-around text-center">{[1, 2, 3].map(r => (<div key={r}><span className="text-2xl">{roundIcons[r]}</span><p className={`text-xs font-bold ${r === 1 ? 'text-blue-400' : r === 2 ? 'text-amber-400' : 'text-purple-400'}`}>{t.rounds[r].name}</p></div>))}</div></div>
+              </div>
+              <button onClick={startGame} className="w-full py-4 bg-gradient-to-r from-green-500 to-yellow-500 hover:from-green-400 hover:to-yellow-400 text-gray-900 font-black text-xl rounded-xl transition-all shadow-lg">{t.startGame} {countryData.flag} {ageEmojis[ageGroup]}</button>
+              <p className="text-gray-500 text-xs mt-4 mb-1 text-center">Try my other project</p>
+              <a href="https://lovegraft.com" target="_blank" rel="noopener noreferrer" className="block opacity-70 hover:opacity-100 transition-opacity">
+                <div className="bg-gray-700/30 rounded-xl p-4 flex items-center gap-5">
+                  <div className="w-32 h-48 rounded-xl overflow-hidden flex-shrink-0 relative">
+                    <div className="flex" style={{animation: 'scrollImages 12s infinite'}}>
+                      <img src="Screenshot 2025-12-28 at 14.25.48.png" alt="Lovegraft" className="w-32 h-48 object-cover flex-shrink-0" />
+                      <img src="Screenshot 2025-12-28 at 14.26.29.png" alt="Lovegraft" className="w-32 h-48 object-cover flex-shrink-0" />
+                      <img src="Screenshot 2025-12-28 at 14.26.42.png" alt="Lovegraft" className="w-32 h-48 object-cover flex-shrink-0" />
+                      <img src="Screenshot 2025-12-28 at 14.25.48.png" alt="Lovegraft" className="w-32 h-48 object-cover flex-shrink-0" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-gray-400 text-base mb-1">Analyse your relationship professionally</p>
+                    <p className="text-gray-200 text-xl font-bold">lovegraft.com</p>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+        );
+      }
+
+      if (gameState === 'between-rounds') {
+        const leaders = getLeader();
+        const minScore = Math.min(...scores);
+        const lowestTeams = scores.reduce((acc, s, i) => { if (s === minScore) acc.push(i); return acc; }, []);
+        const nextStartTeamPreview = lowestTeams.length === 1 ? lowestTeams[0] : null;
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 flex items-center justify-center p-6">
+            <div className="bg-gray-800 rounded-3xl p-8 max-w-lg w-full shadow-2xl text-center">
+              <div className="text-6xl mb-4">🎉</div>
+              <h2 className="text-3xl font-black text-white mb-2">{t.roundComplete.replace('{n}', round)}</h2>
+              <div className="grid grid-cols-2 gap-3 my-6">{scores.map((score, idx) => (<div key={idx} className={`${teamColors[idx].bg} ${leaders?.includes(idx) ? 'ring-2 ' + teamColors[idx].ring : ''} rounded-xl p-3`}><p className={`${teamColors[idx].text} text-sm`}>{t.team} {idx + 1} {teamEmojis[idx]}</p><p className="text-3xl font-black text-white">{score}</p>{leaders?.includes(idx) && <p className="text-yellow-400 text-xs mt-1">{t.leading}</p>}</div>))}</div>
+              <div className={`bg-gradient-to-r ${roundColors[round + 1]} rounded-xl p-4 mb-4`}><p className="text-white/80 text-sm">{t.nextUp}</p><p className="text-2xl font-black text-white">{roundIcons[round + 1]} {t.rounds[round + 1].name}</p><p className="text-white/80 text-sm mt-1">{t.rounds[round + 1].description}</p></div>
+              <div className="bg-gray-700/50 rounded-xl p-3 mb-6"><p className="text-gray-300">{nextStartTeamPreview !== null ? `${teamEmojis[nextStartTeamPreview]} ${t.team} ${nextStartTeamPreview + 1} ${t.startsRound} ${round + 1}` : `${lowestTeams.map(i => teamEmojis[i]).join(' ')} ${t.tiedStart || 'Tied teams - random start'}`}</p></div>
+              <button onClick={nextRound} className="w-full py-4 bg-gradient-to-r from-green-500 to-yellow-500 text-gray-900 font-black text-xl rounded-xl">{t.startRound} {round + 1} →</button>
+            </div>
+          </div>
+        );
+      }
+
+      if (gameState === 'finished') {
+        const winners = getWinner();
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 flex items-center justify-center p-6">
+            <div className="bg-gray-800 rounded-3xl p-8 max-w-lg w-full shadow-2xl text-center">
+              <div className="text-6xl mb-4">🏆</div>
+              <h2 className="text-3xl font-black text-white mb-2">{t.gameOver}</h2>
+              <p className="text-2xl text-yellow-400 mb-6">{winners.length === 1 ? `${t.team} ${winners[0] + 1} ${t.wins} 🎉` : `${t.team}s ${winners.map(w => w + 1).join(' & ')} ${t.tie}`}</p>
+              <div className="grid grid-cols-2 gap-3 my-6">{scores.map((score, idx) => (<div key={idx} className={`${winners.includes(idx) ? 'bg-yellow-500/30 ring-2 ring-yellow-400' : teamColors[idx].bg} rounded-xl p-3`}><p className={`${teamColors[idx].text} text-sm`}>{t.team} {idx + 1} {teamEmojis[idx]}</p><p className="text-4xl font-black text-white">{score}</p>{winners.includes(idx) && <p className="text-yellow-400 mt-1">🏆</p>}</div>))}</div>
+              <button onClick={resetGame} className="w-full py-4 bg-gradient-to-r from-green-500 to-yellow-500 text-gray-900 font-black text-xl rounded-xl">{t.playAgain} 🔄</button>
+            </div>
+          </div>
+        );
+      }
+
+      const cardsLeft = remainingWords.length + (currentWord ? 1 : 0);
+      const countryData = wordPacks[selectedCountry];
+
+      return (
+        <div className={`min-h-screen bg-gradient-to-br ${teamColors[currentTeam].gradient} p-4 transition-colors duration-500`}>
+          <div className="max-w-lg mx-auto">
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={resetGame} className="text-white/60 hover:text-white text-sm">← {t.exit}</button>
+              <div className="text-center"><p className="text-white/60 text-xs">{t.round} {round} {countryData.flag} {ageEmojis[ageGroup]}</p><p className="text-white font-bold">{roundIcons[round]} {t.rounds[round].name}</p></div>
+              <div className="text-white text-sm font-bold">📇 {cardsLeft}</div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 mb-4">{scores.map((score, idx) => (<div key={idx} className={`${currentTeam === idx ? 'ring-2 ring-white scale-105' : 'opacity-60'} ${teamColors[idx].bg} rounded-xl p-2 text-center transition-all`}><p className="text-white/60 text-xs">{currentTeam === idx && '▶ '}{t.team} {idx + 1} {teamEmojis[idx]}</p><p className="text-xl font-black text-white">{score}</p></div>))}</div>
+            <div className="text-center mb-4">
+              <div className={`inline-block text-8xl font-black tabular-nums ${isRunning && timer <= 10 ? 'text-red-200 animate-pulse' : 'text-white'}`}>{timer}</div>
+              {isRunning && <p className="text-white/60 text-sm mt-1">✓ {turnCorrect.length} {t.thisTurn}</p>}
+              {!isRunning && !showTurnSummary && <p className="text-white/60 text-sm mt-1">{t.seconds}</p>}
+            </div>
+            <div className="bg-white rounded-2xl p-6 shadow-2xl mb-4 min-h-[280px] flex flex-col items-center justify-center">
+              {!isRunning && !showTurnSummary && (
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-800 mb-2">{teamEmojis[currentTeam]} {t.team} {currentTeam + 1}{t.teamsTurn}</p>
+                  <p className="text-gray-500 mb-6">{t.rounds[round].description}</p>
+                  <button onClick={startTurn} className={`px-10 py-5 bg-gradient-to-r ${roundColors[round]} text-white font-black text-2xl rounded-2xl shadow-lg active:scale-95 transition-transform`}>{t.go} 🚀</button>
+                </div>
+              )}
+              {isRunning && currentWord && (
+                <div className="text-center w-full">
+                  <p className="text-4xl font-black text-gray-800 mb-8 leading-tight">{currentWord}</p>
+                  <button onClick={markCorrect} className="w-full py-5 bg-green-500 hover:bg-green-400 active:bg-green-600 text-white font-bold text-xl rounded-xl transition-all mb-4">{t.gotIt} ✓</button>
+                  <button onClick={stopTurn} className="w-full py-3 bg-red-100 hover:bg-red-200 text-red-600 font-bold rounded-xl transition-all">{t.stopTurn} ⏹️</button>
+                </div>
+              )}
+              {showTurnSummary && (
+                <div className="text-center w-full">
+                  <p className="text-gray-500 mb-2">{t.turnOver}</p>
+                  <p className="text-5xl font-black text-green-600 mb-2">{turnCorrect.length}</p>
+                  <p className="text-gray-500 mb-4">{t.cardsFor} {t.team} {currentTeam + 1} {teamEmojis[currentTeam]}</p>
+                  {turnCorrect.length > 0 && (
+                    <div className="bg-gray-100 rounded-xl p-3 mb-4 max-h-32 overflow-y-auto">
+                      <p className="text-gray-400 text-xs mb-2">{t.tapToRemove}</p>
+                      <div className="flex flex-wrap gap-2 justify-center">{turnCorrect.map((word, i) => (<button key={i} onClick={() => { const newCorrect = turnCorrect.filter((_, idx) => idx !== i); setTurnCorrect(newCorrect); setScores(prev => { const n = [...prev]; n[currentTeam] -= 1; return n; }); setRemainingWords(prev => [...prev, word]); }} className="bg-green-100 hover:bg-red-100 text-green-700 hover:text-red-600 px-2 py-1 rounded text-sm transition-colors flex items-center gap-1">{word} <span className="text-red-400 text-xs">✕</span></button>))}</div>
+                    </div>
+                  )}
+                  <button onClick={nextTeam} className={`w-full py-4 bg-gradient-to-r ${roundColors[round]} text-white font-black text-xl rounded-xl`}>{teamEmojis[(currentTeam + 1) % numTeams]} {t.team} {((currentTeam + 1) % numTeams) + 1}{t.nextTeam} →</button>
+                </div>
+              )}
+            </div>
+            <div className="bg-white/20 rounded-xl p-3 text-center"><p className="text-white font-medium">{t.rounds[round].description}</p></div>
+          </div>
+        </div>
+      );
+    }
+    // Load expanded words then render app
+    loadExpandedWords().then(() => {
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    });
+  </script>
+</body>
+</html>
