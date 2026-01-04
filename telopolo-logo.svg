@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120">
+  <defs>
+    <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#22c55e"/>
+      <stop offset="100%" style="stop-color:#eab308"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22c55e"/>
+      <stop offset="50%" style="stop-color:#eab308"/>
+      <stop offset="100%" style="stop-color:#22c55e"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Timer circle background -->
+  <circle cx="60" cy="60" r="50" fill="#1f2937" stroke="url(#timerGrad)" stroke-width="4"/>
+  
+  <!-- Timer tick marks -->
+  <g stroke="#4b5563" stroke-width="2">
+    <line x1="60" y1="18" x2="60" y2="25"/>
+    <line x1="60" y1="95" x2="60" y2="102"/>
+    <line x1="18" y1="60" x2="25" y2="60"/>
+    <line x1="95" y1="60" x2="102" y2="60"/>
+  </g>
+  
+  <!-- Progress arc -->
+  <circle cx="60" cy="60" r="40" fill="none" stroke="url(#timerGrad)" stroke-width="6" 
+          stroke-dasharray="188 251" stroke-linecap="round" transform="rotate(-90 60 60)"/>
+  
+  <!-- Timer button -->
+  <rect x="52" y="4" width="16" height="8" rx="2" fill="url(#timerGrad)"/>
+  
+  <!-- "30" in the center -->
+  <text x="60" y="70" font-family="Arial Black, sans-serif" font-size="36" font-weight="900" 
+        fill="url(#timerGrad)" text-anchor="middle" filter="url(#glow)">30</text>
+  
+  <!-- TELO·POLO text -->
+  <text x="245" y="58" font-family="Arial Black, sans-serif" font-size="46" font-weight="900" 
+        fill="url(#textGrad)" text-anchor="middle" letter-spacing="1">TELO·POLO</text>
+  
+  <!-- Tagline -->
+  <text x="245" y="88" font-family="Arial, sans-serif" font-size="12" fill="#9ca3af" 
+        text-anchor="middle" letter-spacing="2">THE QUICK THINKING GAME</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="125" cy="25" r="4" fill="#22c55e" opacity="0.7"/>
+  <circle cx="365" cy="40" r="3" fill="#eab308" opacity="0.6"/>
+  <circle cx="350" cy="95" r="5" fill="#22c55e" opacity="0.5"/>
+  <circle cx="140" cy="100" r="3" fill="#eab308" opacity="0.7"/>
+</svg>

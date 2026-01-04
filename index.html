@@ -11,27 +11,29 @@
   <meta name="author" content="TELO·POLO">
   <meta name="robots" content="index, follow">
 
+  <!-- Favicon & Icons -->
+  <link rel="icon" type="image/svg+xml" href="telopolo-icon.svg">
+  <link rel="icon" type="image/png" sizes="512x512" href="telopolo-icon.png">
+  <link rel="apple-touch-icon" href="telopolo-icon.png">
+
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="TELO·POLO - Free Online Party Game for Couples & Groups">
   <meta property="og:description" content="Free online party game for couples and groups! Describe, act, and guess words in 30 seconds. No download - play instantly in your browser!">
   <meta property="og:site_name" content="TELO·POLO">
-  <meta property="og:image" content="telopolo-logo.svg">
+  <meta property="og:image" content="https://telopo.com/telopolo-logo.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="TELO·POLO - Free Online Party Game for Couples & Groups">
   <meta name="twitter:description" content="Free online party game for couples and groups! Describe, act, and guess words in 30 seconds. No download - play instantly in your browser!">
-  <meta name="twitter:image" content="telopolo-logo.svg">
+  <meta name="twitter:image" content="https://telopo.com/telopolo-logo.png">
 
   <!-- Additional SEO -->
   <link rel="canonical" href="https://telopo.com/">
   <meta name="theme-color" content="#065f46">
-  
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="telopolo-icon.svg">
-  <link rel="apple-touch-icon" href="telopolo-icon.svg">
-  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -140,50 +142,6 @@
       } catch {}
     }
 
-    // Inline SVG Logo Component
-    const Logo = () => (
-      <svg viewBox="0 0 400 120" className="w-full max-w-xs mx-auto mb-2">
-        <defs>
-          <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{stopColor:'#22c55e'}}/>
-            <stop offset="100%" style={{stopColor:'#eab308'}}/>
-          </linearGradient>
-          <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style={{stopColor:'#22c55e'}}/>
-            <stop offset="50%" style={{stopColor:'#eab308'}}/>
-            <stop offset="100%" style={{stopColor:'#22c55e'}}/>
-          </linearGradient>
-          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
-        <circle cx="60" cy="60" r="50" fill="#1f2937" stroke="url(#timerGrad)" strokeWidth="4"/>
-        <g stroke="#4b5563" strokeWidth="2">
-          <line x1="60" y1="18" x2="60" y2="25"/>
-          <line x1="60" y1="95" x2="60" y2="102"/>
-          <line x1="18" y1="60" x2="25" y2="60"/>
-          <line x1="95" y1="60" x2="102" y2="60"/>
-        </g>
-        <circle cx="60" cy="60" r="40" fill="none" stroke="url(#timerGrad)" strokeWidth="6" 
-                strokeDasharray="188 251" strokeLinecap="round" transform="rotate(-90 60 60)"/>
-        <rect x="52" y="4" width="16" height="8" rx="2" fill="url(#timerGrad)"/>
-        <text x="60" y="70" fontFamily="Arial Black, sans-serif" fontSize="36" fontWeight="900" 
-              fill="url(#timerGrad)" textAnchor="middle" filter="url(#glow)">30</text>
-        <text x="245" y="58" fontFamily="Arial Black, sans-serif" fontSize="46" fontWeight="900" 
-              fill="url(#textGrad)" textAnchor="middle" letterSpacing="1">TELO·POLO</text>
-        <text x="245" y="88" fontFamily="Arial, sans-serif" fontSize="12" fill="#9ca3af" 
-              textAnchor="middle" letterSpacing="2">THE QUICK THINKING GAME</text>
-        <circle cx="125" cy="25" r="4" fill="#22c55e" opacity="0.7"/>
-        <circle cx="365" cy="40" r="3" fill="#eab308" opacity="0.6"/>
-        <circle cx="350" cy="95" r="5" fill="#22c55e" opacity="0.5"/>
-        <circle cx="140" cy="100" r="3" fill="#eab308" opacity="0.7"/>
-      </svg>
-    );
-
     function App() {
       const [lang, setLang] = useState(getSavedLang());
       const t = translations[lang] || translations.en;
@@ -208,15 +166,13 @@
       const [showRules, setShowRules] = useState(false);
       const [showLangMenu, setShowLangMenu] = useState(false);
 
-      // Use refs to track current word and correct answers for timer callback
+      // Refs to track current values for timer callback
       const currentWordRef = useRef(null);
       const turnCorrectRef = useRef([]);
-      const remainingWordsRef = useRef([]);
 
       // Keep refs in sync with state
       useEffect(() => { currentWordRef.current = currentWord; }, [currentWord]);
       useEffect(() => { turnCorrectRef.current = turnCorrect; }, [turnCorrect]);
-      useEffect(() => { remainingWordsRef.current = remainingWords; }, [remainingWords]);
 
       const langOptions = Object.keys(translations);
 
@@ -233,7 +189,6 @@
       }, [numTeams]);
 
       const getCardOptions = () => cardBaseOptions.map(b => getOddCardCount(b, numTeams));
-      
       const startGame = () => {
         const allWords = wordPacks[selectedCountry].ages[ageGroup];
         const usedWords = getUsedWords(selectedCountry, ageGroup);
@@ -249,115 +204,31 @@
         setCurrentTeam(randomStartTeam);
         setGameState('playing');
       };
-      
-      const startTurn = () => { 
-        setTurnCorrect([]); 
-        setTimer(30); 
-        setIsRunning(true); 
-        setShowTurnSummary(false); 
-        drawNextWord(); 
-      };
-      
-      const drawNextWord = () => { 
-        if (remainingWords.length > 0) { 
-          const [next, ...rest] = remainingWords; 
-          setCurrentWord(next); 
-          setRemainingWords(rest); 
-        } else endRound(); 
-      };
-      
-      const markCorrect = () => { 
-        const newTurnCorrect = [...turnCorrect, currentWord]; 
-        setTurnCorrect(newTurnCorrect); 
-        if (remainingWords.length > 0) drawNextWord(); 
-        else endRoundWithCorrect(newTurnCorrect); 
-      };
-      
-      // FIX: stopTurn now just calls endTurn (no need to handle currentWord separately)
-      const stopTurn = () => { 
-        endTurn(); 
-      };
-      
-      // FIX: endTurn now properly puts the current word back into remainingWords
-      const endTurn = () => { 
-        setIsRunning(false);
-        // Use ref to get current word since this may be called from timer useEffect
+      const startTurn = () => { setTurnCorrect([]); setTimer(30); setIsRunning(true); setShowTurnSummary(false); drawNextWord(); };
+      const drawNextWord = () => { if (remainingWords.length > 0) { const [next, ...rest] = remainingWords; setCurrentWord(next); setRemainingWords(rest); } else endRound(); };
+      const markCorrect = () => { const newTurnCorrect = [...turnCorrect, currentWord]; setTurnCorrect(newTurnCorrect); if (remainingWords.length > 0) drawNextWord(); else endRoundWithCorrect(newTurnCorrect); };
+      const stopTurn = () => { endTurn(); };
+      const endTurn = () => {
         const wordToReturn = currentWordRef.current;
         const correctWords = turnCorrectRef.current;
-        
-        if (wordToReturn) {
-          // Put the current word back in the deck (shuffled in)
-          setRemainingWords(prev => shuffleArray([...prev, wordToReturn]));
-        }
+        if (wordToReturn) setRemainingWords(prev => [...prev, wordToReturn]);
+        setIsRunning(false);
         setCurrentWord(null);
-        setScores(prev => { 
-          const n = [...prev]; 
-          n[currentTeam] += correctWords.length; 
-          return n; 
-        }); 
-        setShowTurnSummary(true); 
+        setScores(prev => { const n = [...prev]; n[currentTeam] += correctWords.length; return n; });
+        setShowTurnSummary(true);
       };
-      
-      const endRoundWithCorrect = (correctList) => { 
-        setIsRunning(false); 
-        setCurrentWord(null); 
-        setScores(prev => { const n = [...prev]; n[currentTeam] += correctList.length; return n; }); 
-        setTurnCorrect(correctList); 
-        if (round < 3) setGameState('between-rounds'); 
-        else setGameState('finished'); 
-      };
-      
+      const endRoundWithCorrect = (correctList) => { setIsRunning(false); setCurrentWord(null); setScores(prev => { const n = [...prev]; n[currentTeam] += correctList.length; return n; }); setTurnCorrect(correctList); if (round < 3) setGameState('between-rounds'); else setGameState('finished'); };
       const endRound = () => endRoundWithCorrect(turnCorrect);
-      
-      const nextTeam = () => { 
-        setShowTurnSummary(false); 
-        setTurnCorrect([]); 
-        setCurrentTeam((currentTeam + 1) % numTeams); 
-      };
-      
+      const nextTeam = () => { setShowTurnSummary(false); setTurnCorrect([]); setCurrentTeam((currentTeam + 1) % numTeams); };
       const nextRound = () => {
         const minScore = Math.min(...scores);
         const lowestTeams = scores.reduce((acc, s, i) => { if (s === minScore) acc.push(i); return acc; }, []);
         const newStartTeam = lowestTeams[Math.floor(Math.random() * lowestTeams.length)];
-        setRound(prev => prev + 1); 
-        setRemainingWords(shuffleArray([...gameWords])); 
-        setRoundStartTeam(newStartTeam); 
-        setCurrentTeam(newStartTeam); 
-        setTurnCorrect([]); 
-        setShowTurnSummary(false); 
-        setCurrentWord(null); 
-        setIsRunning(false); 
-        setTimer(30); 
-        setGameState('playing');
+        setRound(prev => prev + 1); setRemainingWords(shuffleArray([...gameWords])); setRoundStartTeam(newStartTeam); setCurrentTeam(newStartTeam); setTurnCorrect([]); setShowTurnSummary(false); setCurrentWord(null); setIsRunning(false); setTimer(30); setGameState('playing');
       };
-      
-      const resetGame = () => { 
-        if (gameWords.length > 0) saveGameWords(selectedCountry, ageGroup, gameWords); 
-        setGameState('setup'); 
-        setRound(1); 
-        setRoundStartTeam(0); 
-        setTimer(30); 
-        setIsRunning(false); 
-        setCurrentTeam(0); 
-        setScores([]); 
-        setGameWords([]); 
-        setRemainingWords([]); 
-        setCurrentWord(null); 
-        setTurnCorrect([]); 
-        setShowTurnSummary(false); 
-        setAgeGroup('allAges'); 
-      };
-      
-      const getWinner = () => { 
-        const max = Math.max(...scores); 
-        return scores.reduce((acc, s, i) => { if (s === max) acc.push(i); return acc; }, []); 
-      };
-      
-      const getLeader = () => { 
-        const max = Math.max(...scores); 
-        const leaders = scores.reduce((acc, s, i) => { if (s === max) acc.push(i); return acc; }, []); 
-        return leaders.length === scores.length ? null : leaders; 
-      };
+      const resetGame = () => { if (gameWords.length > 0) saveGameWords(selectedCountry, ageGroup, gameWords); setGameState('setup'); setRound(1); setRoundStartTeam(0); setTimer(30); setIsRunning(false); setCurrentTeam(0); setScores([]); setGameWords([]); setRemainingWords([]); setCurrentWord(null); setTurnCorrect([]); setShowTurnSummary(false); setAgeGroup('allAges'); };
+      const getWinner = () => { const max = Math.max(...scores); return scores.reduce((acc, s, i) => { if (s === max) acc.push(i); return acc; }, []); };
+      const getLeader = () => { const max = Math.max(...scores); const leaders = scores.reduce((acc, s, i) => { if (s === max) acc.push(i); return acc; }, []); return leaders.length === scores.length ? null : leaders; };
 
       const RulesModal = () => (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={() => setShowRules(false)}>
@@ -411,7 +282,7 @@
         return (
           <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 flex items-center justify-center p-4">
             <div className="bg-gray-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl max-h-[95vh] overflow-y-auto">
-              <div className="text-center mb-4">
+              <div className="text-center mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <div className="relative">
                     <button onClick={() => setShowLangMenu(!showLangMenu)} className="text-gray-400 hover:text-yellow-400 text-sm flex items-center gap-1">{translations[lang].flag} {translations[lang].name} ▾</button>
@@ -426,8 +297,7 @@
                   <a href="https://buymeacoffee.com/pieterdevix" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:bg-yellow-400 hover:text-gray-900 text-xs px-2 py-1 border border-yellow-400 rounded-lg transition-all">{t.support}</a>
                   <button onClick={() => setShowRules(true)} className="text-gray-400 hover:text-yellow-400 text-sm flex items-center gap-1">📜 {t.rules}</button>
                 </div>
-                {/* Logo Component */}
-                <Logo />
+                <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-yellow-400 to-green-400 mb-1">{t.title}</h1>
                 <p className="text-lg text-yellow-400">{t.subtitle}</p>
               </div>
               {showRules && <RulesModal />}
@@ -515,10 +385,14 @@
         <div className={`min-h-screen bg-gradient-to-br ${teamColors[currentTeam].gradient} p-4 transition-colors duration-500`}>
           <div className="max-w-lg mx-auto">
             <div className="flex items-center justify-between mb-4">
-              <button onClick={resetGame} className="text-white/60 hover:text-white text-sm">← {t.exit}</button>
+              <div className="flex items-center gap-2">
+                <button onClick={resetGame} className="text-white/60 hover:text-white text-sm">← {t.exit}</button>
+                <button onClick={() => setShowRules(true)} className="text-white/60 hover:text-white text-sm">📜</button>
+              </div>
               <div className="text-center"><p className="text-white/60 text-xs">{t.round} {round} {countryData.flag} {ageEmojis[ageGroup]}</p><p className="text-white font-bold">{roundIcons[round]} {t.rounds[round].name}</p></div>
               <div className="text-white text-sm font-bold">📇 {cardsLeft}</div>
             </div>
+            {showRules && <RulesModal />}
             <div className="grid grid-cols-2 gap-2 mb-4">{scores.map((score, idx) => (<div key={idx} className={`${currentTeam === idx ? 'ring-2 ring-white scale-105' : 'opacity-60'} ${teamColors[idx].bg} rounded-xl p-2 text-center transition-all`}><p className="text-white/60 text-xs">{currentTeam === idx && '▶ '}{t.team} {idx + 1} {teamEmojis[idx]}</p><p className="text-xl font-black text-white">{score}</p></div>))}</div>
             <div className="text-center mb-4">
               <div className={`inline-block text-8xl font-black tabular-nums ${isRunning && timer <= 10 ? 'text-red-200 animate-pulse' : 'text-white'}`}>{timer}</div>
@@ -546,23 +420,9 @@
                   <p className="text-5xl font-black text-green-600 mb-2">{turnCorrect.length}</p>
                   <p className="text-gray-500 mb-4">{t.cardsFor} {t.team} {currentTeam + 1} {teamEmojis[currentTeam]}</p>
                   {turnCorrect.length > 0 && (
-                    <div className="bg-green-50 rounded-xl p-3 mb-4 max-h-32 overflow-y-auto border border-green-200">
-                      <p className="text-green-600 text-xs mb-2 font-medium">✓ {t.tapToRemove}</p>
-                      <div className="flex flex-wrap gap-2 justify-center">{turnCorrect.map((word, i) => (
-                        <button 
-                          key={i} 
-                          onClick={() => { 
-                            const newCorrect = turnCorrect.filter((_, idx) => idx !== i); 
-                            setTurnCorrect(newCorrect); 
-                            setScores(prev => { const n = [...prev]; n[currentTeam] -= 1; return n; }); 
-                            setRemainingWords(prev => [...prev, word]); 
-                          }} 
-                          className="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2 border border-green-300 active:bg-red-100 active:text-red-600 active:border-red-300"
-                        >
-                          <span className="font-medium">{word}</span>
-                          <span className="text-red-400 text-xs font-bold">✕</span>
-                        </button>
-                      ))}</div>
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-4 max-h-32 overflow-y-auto">
+                      <p className="text-green-600 text-xs mb-2">✓ {t.tapToRemove}</p>
+                      <div className="flex flex-wrap gap-2 justify-center">{turnCorrect.map((word, i) => (<button key={i} onClick={() => { const newCorrect = turnCorrect.filter((_, idx) => idx !== i); setTurnCorrect(newCorrect); setScores(prev => { const n = [...prev]; n[currentTeam] -= 1; return n; }); setRemainingWords(prev => [...prev, word]); }} className="bg-green-100 active:bg-red-100 text-green-700 active:text-red-600 px-2 py-1 rounded text-sm transition-colors flex items-center gap-1">{word} <span className="text-red-400 text-xs">✕</span></button>))}</div>
                     </div>
                   )}
                   <button onClick={nextTeam} className={`w-full py-4 bg-gradient-to-r ${roundColors[round]} text-white font-black text-xl rounded-xl`}>{teamEmojis[(currentTeam + 1) % numTeams]} {t.team} {((currentTeam + 1) % numTeams) + 1}{t.nextTeam} →</button>
