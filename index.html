@@ -385,12 +385,9 @@
         <div className={`min-h-screen bg-gradient-to-br ${teamColors[currentTeam].gradient} p-4 transition-colors duration-500`}>
           <div className="max-w-lg mx-auto">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <button onClick={resetGame} className="text-white/60 hover:text-white text-sm">← {t.exit}</button>
-                <button onClick={() => setShowRules(true)} className="text-white/60 hover:text-white text-sm">📜</button>
-              </div>
+              <button onClick={resetGame} className="bg-white/20 hover:bg-white/30 text-white text-sm px-3 py-1.5 rounded-lg font-medium transition-all">{t.exit}</button>
               <div className="text-center"><p className="text-white/60 text-xs">{t.round} {round} {countryData.flag} {ageEmojis[ageGroup]}</p><p className="text-white font-bold">{roundIcons[round]} {t.rounds[round].name}</p></div>
-              <div className="text-white text-sm font-bold">📇 {cardsLeft}</div>
+              <div className="text-white text-sm font-bold">{cardsLeft} {t.cardsLeft || 'cards left'}</div>
             </div>
             {showRules && <RulesModal />}
             <div className="grid grid-cols-2 gap-2 mb-4">{scores.map((score, idx) => (<div key={idx} className={`${currentTeam === idx ? 'ring-2 ring-white scale-105' : 'opacity-60'} ${teamColors[idx].bg} rounded-xl p-2 text-center transition-all`}><p className="text-white/60 text-xs">{currentTeam === idx && '▶ '}{t.team} {idx + 1} {teamEmojis[idx]}</p><p className="text-xl font-black text-white">{score}</p></div>))}</div>
@@ -430,6 +427,7 @@
               )}
             </div>
             <div className="bg-white/20 rounded-xl p-3 text-center"><p className="text-white font-medium">{t.rounds[round].description}</p></div>
+            <button onClick={() => setShowRules(true)} className="w-full mt-3 py-3 bg-white/20 hover:bg-white/30 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2">📜 {t.rules}</button>
           </div>
         </div>
       );
