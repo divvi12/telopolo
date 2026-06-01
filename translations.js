@@ -9,8 +9,8 @@ const translations = {
     rules: "Rules",
     support: "☕ Buy me a coffee (say thank you)",
     // Setup
-    chooseCountry: "Choose Country:",
-    ageGroup: "Age Group:",
+    chooseCountry: "Country Topic Words:",
+    ageGroup: "Age Group Topic Words:",
     teams: "Teams:",
     cards: "Cards:",
     startGame: "START GAME",
